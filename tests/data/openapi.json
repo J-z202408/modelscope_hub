@@ -4467,7 +4467,7 @@
               }
             ],
             "default": "platform/2v-cpu-16g-mem",
-            "description": "硬件配置。未传时使用默认免费硬件配置"
+            "description": "硬件配置。免费资源使用 platform/xgpu/amd 等前缀，付费资源使用 paid/<InstanceType>。缺省或解析出老免费档时，服务端会归一到当前默认免费档"
           }
         },
         "required": [
@@ -4768,6 +4768,11 @@
             "examples": [
               "sk-xxxxxxxxxxxx"
             ]
+          },
+          "description": {
+            "type": "string",
+            "description": "描述，非必填",
+            "maxLength": 512
           }
         },
         "required": [
@@ -4794,6 +4799,11 @@
             "examples": [
               "sk-xxxxxxxxxxxx"
             ]
+          },
+          "description": {
+            "type": "string",
+            "description": "描述，非必填；不传保持原值，传空字符串表示清空",
+            "maxLength": 512
           }
         },
         "required": [
@@ -4808,6 +4818,10 @@
           "key": {
             "type": "string",
             "description": "密文变量名称"
+          },
+          "description": {
+            "type": "string",
+            "description": "描述"
           }
         },
         "required": [
@@ -5173,6 +5187,11 @@
             "examples": [
               "/tmp/gradio"
             ]
+          },
+          "description": {
+            "type": "string",
+            "description": "描述，非必填",
+            "maxLength": 512
           }
         },
         "required": [
@@ -5199,6 +5218,11 @@
             "examples": [
               "/new/path"
             ]
+          },
+          "description": {
+            "type": "string",
+            "description": "描述，非必填；不传保持原值，传空字符串表示清空",
+            "maxLength": 512
           }
         },
         "required": [
@@ -5230,6 +5254,10 @@
           "value": {
             "type": "string",
             "description": "明文变量值"
+          },
+          "description": {
+            "type": "string",
+            "description": "描述"
           }
         },
         "required": [

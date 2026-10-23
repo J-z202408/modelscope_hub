@@ -506,13 +506,14 @@ is publicly visible.
 
 ```bash
 # Secrets — values are write-only
-ms-hub secret add my-org/demo API_KEY sk-xxx
+ms-hub secret add my-org/demo API_KEY sk-xxx --description "used by the app"
 ms-hub secret list my-org/demo
 ms-hub secret update my-org/demo API_KEY sk-new
+ms-hub secret update my-org/demo API_KEY sk-new --description ""   # clear the description
 ms-hub secret delete my-org/demo API_KEY --yes
 
 # Plaintext variables — values are readable by anyone
-ms-hub studio variable add my-org/demo MODEL_NAME Qwen2.5-7B
+ms-hub studio variable add my-org/demo MODEL_NAME Qwen2.5-7B --description "model id"
 ms-hub studio variable list my-org/demo
 ms-hub studio variable update my-org/demo MODEL_NAME Qwen2.5-14B
 ms-hub studio variable delete my-org/demo MODEL_NAME --yes
@@ -523,9 +524,9 @@ ms-hub studio variable delete my-org/demo MODEL_NAME --yes
 
 | Subcommand | Arguments | Description |
 |------------|-----------|-------------|
-| `add` | `repo_id key value` | Add a new entry |
-| `list` | `repo_id` | List entries (`secret` shows keys only; `variable` shows keys and values) |
-| `update` | `repo_id key value` | Update a value |
+| `add` | `repo_id key value [--description D]` | Add a new entry (description max 512 characters) |
+| `list` | `repo_id` | List entries (`secret` shows keys and descriptions; `variable` also shows values) |
+| `update` | `repo_id key value [--description D]` | Update a value; `--description` omitted keeps the stored description, `--description ""` clears it |
 | `delete` | `repo_id key [--yes]` | Delete an entry |
 
 `ms-hub secret` accepts `--repo-type` (default: `studio`, currently the only supported type).
@@ -810,13 +811,13 @@ api = HubApi(token="...", endpoint="https://modelscope.ai")
 | | `stop_repo(repo_id, repo_type)` | Stop deployment |
 | | `get_repo_logs(repo_id, ...)` | Fetch logs |
 | | `update_repo_settings(repo_id, repo_type, ...)` | Update settings |
-| **Secrets** | `add_secret(repo_id, key, value)` | Add a secret |
-| | `list_secrets(repo_id)` | List secret keys (values are never returned) |
-| | `update_secret(repo_id, key, value)` | Update a secret |
+| **Secrets** | `add_secret(repo_id, key, value, description=None)` | Add a secret |
+| | `list_secrets(repo_id)` | List secret keys and descriptions (values are never returned) |
+| | `update_secret(repo_id, key, value, description=None)` | Update a secret; `description=None` keeps the stored one, `""` clears it |
 | | `delete_secret(repo_id, key)` | Delete a secret |
-| **Variables** | `add_variable(repo_id, key, value)` | Add a plaintext variable *(value is public)* |
+| **Variables** | `add_variable(repo_id, key, value, description=None)` | Add a plaintext variable *(value is public)* |
 | | `list_variables(repo_id)` | List variables with their values |
-| | `update_variable(repo_id, key, value)` | Update a variable |
+| | `update_variable(repo_id, key, value, description=None)` | Update a variable; `description=None` keeps the stored one, `""` clears it |
 | | `delete_variable(repo_id, key)` | Delete a variable |
 | **Studio resources** | `list_studio_hardware(...)` | Hardware tiers a Studio can run on |
 | | `list_studio_base_images()` | Available base images |

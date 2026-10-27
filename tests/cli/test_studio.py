@@ -271,6 +271,57 @@ class TestStudioExecute:
         assert "No setting specified" in err
         mock_api.update_repo_settings.assert_not_called()
 
+    def test_settings_oauth_flags(self, mock_api):
+        with patch("modelscope_hub.cli.studio.make_api", return_value=mock_api):
+            code, out, err = run_cli(
+                [
+                    "studio",
+                    "settings",
+                    "org/demo",
+                    "--oauth-enabled",
+                    "--oauth-scope",
+                    "openid profile",
+                    "--oauth-token-expire-time",
+                    "4",
+                    "--oauth-callback-url",
+                    "https://a.example/cb",
+                    "--oauth-callback-url",
+                    "https://b.example/cb",
+                    "--oauth-homepage-url",
+                    "https://example.org",
+                ]
+            )
+        assert code == 0, err
+        assert "Updated settings" in out
+        mock_api.update_repo_settings.assert_called_once_with(
+            "org/demo",
+            RepoType.STUDIO,
+            oauth_enabled=True,
+            oauth_scope="openid profile",
+            oauth_token_expire_time=4,
+            oauth_callback_urls=["https://a.example/cb", "https://b.example/cb"],
+            oauth_homepage_url="https://example.org",
+        )
+
+    def test_settings_disable_oauth(self, mock_api):
+        with patch("modelscope_hub.cli.studio.make_api", return_value=mock_api):
+            code, out, err = run_cli(["studio", "settings", "org/demo", "--no-oauth-enabled"])
+        assert code == 0, err
+        mock_api.update_repo_settings.assert_called_once_with("org/demo", RepoType.STUDIO, oauth_enabled=False)
+
+    def test_settings_oauth_extras_require_enabled_flag(self, mock_api):
+        # The server applies the oauth_* group only when oauth_enabled is
+        # explicitly present; a lone --oauth-scope would be silently dropped.
+        with patch("modelscope_hub.cli.studio.make_api", return_value=mock_api):
+            code, out, err = run_cli(["studio", "settings", "org/demo", "--oauth-scope", "openid"])
+        assert code == 2
+        assert "--oauth-enabled" in err
+        mock_api.update_repo_settings.assert_not_called()
+
+    def test_settings_oauth_enabled_flags_are_mutually_exclusive(self, parser):
+        with pytest.raises(SystemExit):
+            parser.parse_args(["studio", "settings", "org/demo", "--oauth-enabled", "--no-oauth-enabled"])
+
     def test_secret_list(self, mock_api):
         mock_api.list_secrets.return_value = [{"key": "API_KEY"}]
         with patch("modelscope_hub.cli.studio.make_api", return_value=mock_api):

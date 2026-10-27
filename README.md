@@ -469,6 +469,11 @@ ms-hub delete my-org/my-model --repo-type model --yes
 | `--base-image` | no | Studio base Docker image |
 | `--cover-image` | no | Studio cover image URL |
 | `--hardware` | no | Studio hardware spec |
+| `--oauth-enabled` / `--no-oauth-enabled` | no | Studio only: enable the OAuth app configuration (see [Studio OAuth app](#studio-oauth-app-configuration)) |
+| `--oauth-scope` | no | Studio only, required when enabled: space-separated scopes — `openid`, `profile`, `manage-mcp-deployment`, `list-operational-mcp`, `read-repos`, `api-inference` |
+| `--oauth-token-expire-time` | no | Studio only, required when enabled: `1`=15min, `2`=1h, `3`=8h, `4`=1d, `5`=1w, `6`=30d |
+| `--oauth-callback-url` | no | Studio only, required when enabled: callback URL, repeat the flag for multiple entries |
+| `--oauth-homepage-url` | no | Studio only: OAuth app homepage URL |
 
 </details>
 
@@ -568,7 +573,7 @@ ms-hub studio settings my-org/demo --visibility protected
 | `sdk-versions` | — | `--sdk-type` (default `gradio`; only gradio publishes versions) |
 | `deploy` / `stop` | `studio_id` | — |
 | `logs` | `studio_id` | `--type {run,build}`, `--keyword`, `--page`, `--page-size` (max 500) |
-| `settings` | `studio_id [key=val...]` | `--display-name`, `--description`, `--license`, `--cover-image`, `--sdk-type`, `--sdk-version`, `--base-image`, `--hardware`, `--visibility`, `--private`/`--public` |
+| `settings` | `studio_id [key=val...]` | `--display-name`, `--description`, `--license`, `--cover-image`, `--sdk-type`, `--sdk-version`, `--base-image`, `--hardware`, `--visibility`, `--private`/`--public`, OAuth app flags (see [Studio OAuth app](#studio-oauth-app-configuration)) |
 | `secret` | see above | — |
 | `variable` | see above | — |
 
@@ -584,6 +589,46 @@ spaces includes stopped ones. Without `--owner` the server's own default applies
 (running spaces only).
 
 </details>
+
+#### Studio OAuth app configuration
+
+A Studio can act as an OAuth application: once enabled, the space can obtain
+ModelScope user authorization through the standard OAuth flow. Configure it at
+creation time (`ms-hub create --repo-type studio`) or later with
+`ms-hub studio settings`:
+
+```bash
+# Enable at creation
+ms-hub create my-org/oauth-demo --repo-type studio --sdk-type gradio \
+  --oauth-enabled \
+  --oauth-scope "openid profile read-repos" \
+  --oauth-token-expire-time 4 \
+  --oauth-callback-url https://example.org/oauth/callback \
+  --oauth-homepage-url https://example.org
+
+# Enable / reconfigure later
+ms-hub studio settings my-org/oauth-demo \
+  --oauth-enabled \
+  --oauth-scope "openid api-inference" \
+  --oauth-token-expire-time 2 \
+  --oauth-callback-url https://example.org/cb1 \
+  --oauth-callback-url https://example.org/cb2
+
+# Disable (other oauth_* flags are dropped together with it)
+ms-hub studio settings my-org/oauth-demo --no-oauth-enabled
+```
+
+| Flag | Description |
+|------|-------------|
+| `--oauth-enabled` / `--no-oauth-enabled` | Enable or disable the OAuth app. On update, the whole `oauth_*` group is applied only when this flag is present; the CLI rejects the other `oauth_*` flags without it (the server would silently ignore them) |
+| `--oauth-scope` | Space-separated scopes, required when enabling. Valid scopes: `openid` (ModelScope user identity), `profile` (public user profile), `manage-mcp-deployment` (manage MCP deployments), `list-operational-mcp` (list deployed MCP servers), `read-repos` (read personal repositories), `api-inference` (call API Inference) |
+| `--oauth-token-expire-time` | Token lifetime enum, required when enabling: `1`=15 min, `2`=1 hour, `3`=8 hours, `4`=1 day, `5`=1 week, `6`=30 days |
+| `--oauth-callback-url` | Callback URL, required when enabling; repeat the flag to register several. Each entry needs a scheme and a host |
+| `--oauth-homepage-url` | OAuth app homepage URL, optional |
+
+`ms-hub info <studio_id>` returns the live configuration through the
+`oauth_enabled` / `oauth_scope` / `oauth_token_expire_time` /
+`oauth_callback_urls` / `oauth_homepage_url` fields (omitted when unset).
 
 ### `ms-hub mcp`
 
